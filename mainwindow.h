@@ -6,6 +6,9 @@
 #include <QTimer>
 #include "map.h"
 #include "ui_mainwindow.h"
+#include "plane.h"
+#include "bullet.h"
+#include "enemy.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,17 +21,29 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void initutil();
+    Bulpool* pool;
     QVector <QPushButton*> menu_btn;
     int status;
     int choice_y[4];
-    int choice;
-    QTimer timer;
+    int choice_x[4];
+    int choicey;
+    int choicex;
+    QTimer map_timer;
     QTimer tiptimer;
     QTimer ins_timer;
-    QMediaPlayer player;
+    QTimer p_timer;
+    QTimer e_timer;
+    QTimer ch_timer;
+    QTimer eap_timer;
     Map map;
+    QPixmap myplanes[5];
+    Plane* myplane;
+    QVector<Enemy> enemys;
     bool tipflag = true;
+    bool insflag = true;
+    bool chflag = true;
+
+    void initutil();
     void paintEvent(QPaintEvent*);
     void keyPressEvent(QKeyEvent *event);
     void startgame();
@@ -36,6 +51,8 @@ public:
     void hidemenu();
     void instruction();
     void menu();
+    void gamepause();
+    void changeip();
 
 private slots:
 

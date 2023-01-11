@@ -10,9 +10,11 @@ public:
     int x;
     int y;
     int dir;
+    int speed;
     int state;
+    int blood;
     int shot_intv;
-    int islive;
+    bool isbingdu;
     QPixmap pix_plane;
     QRect rect;
     QVector <Bullet> enbuls;

@@ -6,9 +6,7 @@
         <file>map3.jpg</file>
         <file>map4.jpg</file>
         <file>map5.jpg</file>
-        <file>bgm1.mp3</file>
         <file>xingyun1.jpg</file>
-        <file>game_music.mp3</file>
         <file>choice.png</file>
         <file>messageOK.png</file>
         <file>p1.png</file>
@@ -17,11 +15,24 @@
         <file>p4.png</file>
         <file>choice_x.png</file>
         <file>bullet2.png</file>
-        <file>bullet1.png</file>
         <file>e1.png</file>
         <file>e2.png</file>
         <file>e3.png</file>
-        <file>ebullet1.png</file>
         <file>bingdu1.png</file>
+        <file>bomb-1.png</file>
+        <file>bomb-2.png</file>
+        <file>bomb-3.png</file>
+        <file>bomb-4.png</file>
+        <file>bomb-5.png</file>
+        <file>choose_music.wav</file>
+        <file>game_music.wav</file>
+        <file>menu_music.wav</file>
+        <file>config.wav</file>
+        <file>menu_2.wav</file>
+        <file>game_2.wav</file>
+        <file>shoot.wav</file>
+        <file>bullet2_.png</file>
+        <file>upgrade.png</file>
+        <file>blood.png</file>
     </qresource>
 </RCC>

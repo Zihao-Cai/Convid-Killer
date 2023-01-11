@@ -6,7 +6,7 @@
 class Bullet
 {
 public:
-    Bullet(int par_x,int par_y,int dir);
+    Bullet(int par_x,int par_y,int dir,bool up);
     Bullet();
     int x;
     int y;
@@ -15,7 +15,7 @@ public:
     int p_speed;
     int e_speed;
     int state;
-    int islive;
+    bool isup = false;
 
     void bul_recalc(int dir);
     void setpix(QPixmap pix);

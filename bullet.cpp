@@ -1,9 +1,8 @@
 #include "bullet.h"
 #include "config.h"
 
-Bullet::Bullet(int par_x,int par_y,int dir)
+Bullet::Bullet(int par_x,int par_y,int dir,bool up)
 {
-    islive = 1;
     if(dir == 0){
         x = par_x+RECT_WIDTH/2-MYBUL_WIDTH/2;
         y = par_y-MYBUL_HEIGHT;
@@ -20,7 +19,11 @@ Bullet::Bullet(int par_x,int par_y,int dir)
         pix.load(":/bullet2.png");
     }
     if(dir == 2){
-        pix.load(":/ebullet1.png");
+        pix.load(":/bullet2_.png");
+    }
+    if(up){
+        pix.load(":/bullet1.png");
+        isup = true;
     }
     bul_pix = pix.scaled(MYBUL_WIDTH,MYBUL_HEIGHT , Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     bul_rect.setRect(this->x,this->y,MYBUL_WIDTH,MYBUL_HEIGHT);
@@ -28,7 +31,6 @@ Bullet::Bullet(int par_x,int par_y,int dir)
 
 Bullet::Bullet()
 {
-    islive = 1;
     x = -100;
     y = -100;
     state = 0;
@@ -53,6 +55,7 @@ void Bullet::bul_recalc(int dir)
     if((this->y+MYBUL_HEIGHT)<=0 || (this->y>=HEIGHT)){
         state = 2;
     }
+    bul_rect.setRect(this->x,this->y,MYBUL_WIDTH,MYBUL_HEIGHT);
 }
 
 void Bullet::setpix(QPixmap pix)

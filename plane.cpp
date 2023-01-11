@@ -2,10 +2,11 @@
 #include "bullet.h"
 
 
-Plane::Plane(Bulpool* pool)
+Plane::Plane()
 {
-    islive = 1;
-    this->pool = pool;
+    state = 1;
+    blood = 1;
+    isup = false;
     QPixmap pix(":/p1.png");
     pix = pix.scaled(RECT_WIDTH,RECT_HEIGHT , Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     this->pix_plane = pix;
@@ -29,23 +30,12 @@ void Plane::setpix(QPixmap pix)
     this->pix_plane = pix;
 }
 
-void Plane::shoot()
+void Plane::shoot(bool up)
 {
-    int i = 0;
-    for(i=0;i<BULPOOLSIZE;i++){
-        if(pool->bulpool[i].state == 0){
-            pool->bulpool[i].setpos(this->x+RECT_WIDTH/2-MYBUL_WIDTH/2,this->y-MYBUL_HEIGHT);
-            pool->bulpool[i].state = 1;
-            mybuls.push_back(pool->bulpool[i]);
-            break;
-        }
-    }
-    //若子弹池没有空闲子弹,则新开一个子弹对象装载
-    if(i == BULPOOLSIZE){
-        Bullet tempbul(this->x,this->y,0);
-        tempbul.state = 1;
-        mybuls.push_back(tempbul);
-    }
+    //新开一个子弹对象装载
+    Bullet tempbul(this->x,this->y,0,up);
+    tempbul.state = 1;
+    mybuls.push_back(tempbul);
 }
 
 void Plane::move(int dir)
@@ -56,5 +46,5 @@ void Plane::move(int dir)
     case 2:if((y+RECT_HEIGHT+MYSPEED)<=HEIGHT){y += MYSPEED;}break;
     case 3:if((x-MYSPEED)>=0){x -= MYSPEED;}break;
     }
-
+    rect.setRect(this->x,this->y,RECT_WIDTH,RECT_HEIGHT);
 }

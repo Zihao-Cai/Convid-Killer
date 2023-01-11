@@ -1,7 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #include <QPixmap>
-#include "bulpool.h"
 #include "bullet.h"
 #endif // CONFIG_H
 
@@ -21,6 +20,8 @@
 
 #define MYBUL_WIDTH 10
 #define MYBUL_HEIGHT 30
-#define BULPOOLSIZE 300
 
 
+#define ITEM_SIZE 30
+#define ITEM_BLOOD 0
+#define ITEM_UPGRADE 1

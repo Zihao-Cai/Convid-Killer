@@ -1,5 +1,5 @@
-QT       += core gui
-QT += multimedia
+QT       += core gui multimedia
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
@@ -16,22 +16,24 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    bombcartoon.cpp \
     bullet.cpp \
-    bulpool.cpp \
-    enemy.cpp \
     main.cpp \
     mainwindow.cpp \
+    enemy.cpp \
     map.cpp \
-    plane.cpp
+    plane.cpp \
+    plusitem.cpp
 
 HEADERS += \
+    bombcartoon.h \
     bullet.h \
-    bulpool.h \
+    mainwindow.h \
     config.h \
     enemy.h \
-    mainwindow.h \
     map.h \
-    plane.h
+    plane.h \
+    plusitem.h
 
 FORMS += \
     mainwindow.ui
@@ -43,3 +45,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     imgs.qrc
+
+

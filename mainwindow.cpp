@@ -25,21 +25,30 @@ void MainWindow::initutil()
     menu_btn.push_back(ui->change);
     menu_btn.push_back(ui->records);
     menu_btn.push_back(ui->exit);
+    game_timers.push_back(map_timer);
+    game_timers.push_back(p_timer);
+    game_timers.push_back(e_timer);
+    game_timers.push_back(eap_timer);
+    game_timers.push_back(ell_timer);
+    game_timers.push_back(item_timer);
+    game_timers.push_back(itemflash_timer);
+
     setFixedSize(WIDTH,HEIGHT);
     setWindowTitle(GAME_TITLE);
     QPixmap img(":/icon.jpg");
     QIcon icon = QIcon(img);
     setWindowIcon(icon);
 
-    map_timer.setInterval(10);
+    map_timer->setInterval(10);
     ins_timer.setInterval(1000);
     tiptimer.setInterval(1000);
     ch_timer.setInterval(1000);
-    ell_timer.setInterval(1000);
-    p_timer.setInterval(60);
-    e_timer.setInterval(120);
-    eap_timer.setInterval(8000);//间隔八秒出现敌人
-    item_timer.setInterval(15000);
+    ell_timer->setInterval(1000);
+    p_timer->setInterval(60);
+    e_timer->setInterval(120);
+    eap_timer->setInterval(8000);//间隔八秒出现敌人
+    item_timer->setInterval(5000);//间隔15秒可能出现道具
+    itemflash_timer->setInterval(400);
 
     choice_y[0] = 225;
     choice_y[1] = 225+60;
@@ -61,6 +70,8 @@ void MainWindow::initutil()
     choose_bgm = new QSound(":/choose_music.wav");
     config_bgm = new QSound(":/config.wav");
     shoot_bgm = new QSound(":/shoot.wav");
+    getitem_bgm = new QSound(":/getitem.wav");
+    bomb_bgm = new QSound(":/bomb.wav");
     score = 0;
 
     this->setAttribute(Qt::WA_TransparentForMouseEvents, true);//屏蔽鼠标事件
@@ -80,28 +91,32 @@ void MainWindow::initutil()
         }
         update();
     });
-    connect(&map_timer,&QTimer::timeout,[=](){//地图背景滚动定时器
+    connect(map_timer,&QTimer::timeout,[=](){//地图背景滚动定时器
         recalc();
         update();
     });
-    connect(&p_timer,&QTimer::timeout,[=](){//战机移动定时器
+    connect(p_timer,&QTimer::timeout,[=](){//战机移动定时器
 
         myplane->move(myplane->dir);
         update();
     });
-    connect(&e_timer,&QTimer::timeout,[=](){//敌人移动射击定时器
+    connect(e_timer,&QTimer::timeout,[=](){//敌人移动射击定时器//道具移动定时器
 
         srand((unsigned int) time(NULL));
         for(int i=0;i<enemys.size();i++){
             int tempdir = rand()%100;
             int flag = rand()%10;
             enemys[i].move(tempdir);
-            update();
             enemys[i].shoot(flag);
-            update();
+        }
+        for(int i=0;i<items.size();i++){
+            int flag = rand()%5;
+            if(flag == 0){
+                items[i].move();
+            }
         }
     });
-    connect(&eap_timer,&QTimer::timeout,[=](){//敌人出现定时器
+    connect(eap_timer,&QTimer::timeout,[=](){//敌人出现定时器
         Enemy te = Enemy();
         te.state = 1;
         if(enemys.size()<6){
@@ -117,7 +132,7 @@ void MainWindow::initutil()
         }
         update();
     });
-    connect(&ell_timer,&QTimer::timeout,[=](){//圆周绘制定时器
+    connect(ell_timer,&QTimer::timeout,[=](){//圆周绘制定时器
         if(ellflag){
             ellflag = false;
         }else{
@@ -125,12 +140,21 @@ void MainWindow::initutil()
         }
         update();
     });
-    connect(&item_timer,&QTimer::timeout,[=](){//加成道具定时器
+    connect(item_timer,&QTimer::timeout,[=](){//加成道具定时器
         int flag = rand()%3;
         if(flag == 0){
             Plusitem item;
             item.state = 1;
+            item.settime(QDateTime::currentDateTime());
             items.push_back(item);
+        }
+        update();
+    });
+    connect(itemflash_timer,&QTimer::timeout,[=](){//道具闪烁定时器
+        if(itemflash){
+            itemflash = false;
+        }else{
+            itemflash = true;
         }
         update();
     });
@@ -170,7 +194,11 @@ void MainWindow::paintEvent(QPaintEvent *)
             painter.drawPixmap(cartoons[i].x,cartoons[i].y,cartoons[i].bombpix[cartoons[i].pix_index]);
         }//绘制爆炸动画
         for(int i=0;i<items.size();i++){
-            painter.drawPixmap(items[i].x,items[i].y,items[i].pix);
+            if(items[i].birth_time.secsTo(QDateTime::currentDateTime())<12){
+                painter.drawPixmap(items[i].x,items[i].y,items[i].pix);
+            }else{
+                if(itemflash)   painter.drawPixmap(items[i].x,items[i].y,items[i].pix);
+            }
         }//绘制加成道具
         QFont textfont;
         textfont.setPixelSize(12);
@@ -291,7 +319,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         update();
         return;
     }
-    if(status == GAME){
+    if(status == GAME && !pause){
         switch (event->key()) {
         case Qt::Key_W:myplane->dir = 0;break;
         case Qt::Key_S:myplane->dir = 2;break;
@@ -316,6 +344,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
         update();
         return;
+    }
+    if(status == GAME && pause){
+        if(event->key() == Qt::Key_P){
+            gamerecov();
+        }
+        if(event->key() == Qt::Key_Escape){
+            menu();
+        }
     }
 
     if(status == CHANGEIP){
@@ -360,14 +396,17 @@ void MainWindow::startgame()
     cartoons.clear();//清空所有动画
     map = new Map();//重置地图，达到游戏内随机切换地图效果
     score = 0;//重置得分
-    map_timer.start();
+    myplane->blood = 1;//重置玩家血量
+    myplane->isup = false;//重置强化导弹
+    map_timer->start();
     ins_timer.stop();
     tiptimer.stop();
-    p_timer.start();
-    e_timer.start();
-    eap_timer.start();
-    ell_timer.start();
-    item_timer.start();
+    p_timer->start();
+    e_timer->start();
+    eap_timer->start();
+    ell_timer->start();
+    item_timer->start();
+    itemflash_timer->start();
     //bgm播放
     menu_bgm->stop();
     if(game_bgm->isFinished()){
@@ -408,7 +447,7 @@ void MainWindow::recalc()
         }
     }
     for(int i=0;i<items.size();i++){
-        if(items[i].state != 1){
+        if(items[i].state != 1 || items[i].birth_time.secsTo(QDateTime::currentDateTime())>14){
             items.remove(i);
         }
     }
@@ -431,21 +470,21 @@ void MainWindow::instruction()
     hidemenu();
     ins_timer.start();
     tiptimer.stop();
-    map_timer.stop();
-    p_timer.stop();
-    e_timer.stop();
-    eap_timer.stop();
+    map_timer->stop();
+    p_timer->stop();
+    e_timer->stop();
+    eap_timer->stop();
 }
 
 void MainWindow::menu()
 {
     status = MENU;
     tiptimer.start();
-    map_timer.stop();
+    map_timer->stop();
     ins_timer.stop();
-    p_timer.stop();
-    e_timer.stop();
-    eap_timer.stop();
+    p_timer->stop();
+    e_timer->stop();
+    eap_timer->stop();
     for(int i=0;i<menu_btn.size();i++){//显示菜单
         menu_btn[i]->show();
     }
@@ -457,7 +496,26 @@ void MainWindow::menu()
 
 void MainWindow::gamepause()
 {
+    pause = true;
+    pause_time = QDateTime::currentDateTime();
     printf("game-pause!\n");
+    for(int i=0;i<game_timers.size();i++){
+        game_timers[i]->stop();
+    }
+    myplane->tempdir = myplane->dir;
+    myplane->dir = -1;
+
+}
+
+void MainWindow::gamerecov()
+{
+    pause = false;
+    pause_time = QDateTime::currentDateTime();
+    printf("game-recov!\n");
+    for(int i=0;i<game_timers.size();i++){
+        game_timers[i]->start();
+    }
+    myplane->dir = myplane->tempdir;
 }
 
 void MainWindow::changeip()
@@ -465,12 +523,12 @@ void MainWindow::changeip()
     status = CHANGEIP;
     hidemenu();
     tiptimer.stop();
-    map_timer.stop();
+    map_timer->stop();
     ins_timer.stop();
-    p_timer.stop();
-    e_timer.stop();
+    p_timer->stop();
+    e_timer->stop();
     ch_timer.start();
-    eap_timer.stop();
+    eap_timer->stop();
 }
 
 void MainWindow::isbomb()
@@ -478,12 +536,13 @@ void MainWindow::isbomb()
     for(int i=0;i<myplane->mybuls.size();i++){//我方子弹与敌人的碰撞检测
         for(int j=0;j<enemys.size();j++){
             if(myplane->mybuls[i].bul_rect.intersects(enemys[j].rect)){
-                myplane->mybuls[i].state = 2;
+                if(!myplane->mybuls[i].isup)    myplane->mybuls[i].state = 2;
                 enemys[j].state = 2;
                 Bombcartoon c;
                 c.setpos(enemys[j].x+RECT_WIDTH/4,enemys[j].y+RECT_HEIGHT/4);
                 c.state = 1;
                 cartoons.push_back(c);
+                bomb_bgm->play();
                 score++;
                 update();
             }
@@ -494,10 +553,12 @@ void MainWindow::isbomb()
     for(int i=0;i<enemys.size();i++){
         for(int j = 0;j<enemys[i].enbuls.size();j++){
             if(enemys[i].enbuls[j].bul_rect.intersects(myplane->rect)){
+                enemys[i].enbuls[j].state = 2;
                 Bombcartoon c;
                 c.setpos(myplane->x+RECT_WIDTH/4,myplane->y+RECT_HEIGHT/4);
                 c.state = 1;
                 cartoons.push_back(c);
+                bomb_bgm->play();
                 myplane->blood--;
                 update();
             }
@@ -522,7 +583,7 @@ void MainWindow::isbomb()
     //病毒体和我方战机的碰撞检测
     for(int i=0;i<enemys.size();i++){
         if(enemys[i].isbingdu){
-            if(bingducollapse(myplane->rect,enemys[i].rect)){
+            if(bingdu_collapse(myplane->rect,enemys[i].rect)){
                 Bombcartoon c1,c2;
                 c1.setpos(myplane->x+RECT_WIDTH/4,myplane->y+RECT_HEIGHT/4);
                 c2.setpos(enemys[i].x+RECT_WIDTH/4,enemys[i].y+RECT_HEIGHT/4);
@@ -530,8 +591,9 @@ void MainWindow::isbomb()
                 c2.state = 1;
                 cartoons.push_back(c1);
                 cartoons.push_back(c2);
+                bomb_bgm->play();
                 enemys[i].state = 2;
-                myplane->blood--;
+                myplane->blood = 0;
                 update();
             }
         }
@@ -549,13 +611,13 @@ void MainWindow::isitem()
                 if(myplane->blood<3){
                     myplane->blood++;
                 }
-                /*音效*/
+                getitem_bgm->play();
                 items.remove(i);
                 continue;
             }
             if(items[i].type == ITEM_UPGRADE){
                 myplane->isup = true;
-                /*音效*/
+                getitem_bgm->play();
                 items.remove(i);
                 continue;
             }
@@ -582,7 +644,7 @@ void MainWindow::gamebgm_ch()
     }
 }
 
-bool MainWindow::bingducollapse(QRect plane_rect, QRect bingdu_rect)
+bool MainWindow::bingdu_collapse(QRect plane_rect, QRect bingdu_rect)
 {
     //此碰撞检测为矩形和圆的相交问题,该问题分为两个分支检测//注意:bingdu_rect是enemy的矩形,而非圆的外接矩形
 

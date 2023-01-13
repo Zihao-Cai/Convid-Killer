@@ -1,5 +1,6 @@
 #include "plusitem.h"
 #include <ctime>
+#include "config.h"
 
 Plusitem::Plusitem()
 {
@@ -28,4 +29,25 @@ void Plusitem::setpix(QPixmap itempix)
 {
     itempix = itempix.scaled(ITEM_SIZE,ITEM_SIZE, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     this->pix = itempix;
+}
+
+void Plusitem::move()
+{
+    //随机移动,随机数决定移动方向
+    int dir = rand()%4;
+    switch (dir) {
+    case 0:y-=10;break;
+    case 1:x+=10;break;
+    case 2:y+=10;break;
+    case 3:x-=10;break;
+    }
+    this->rect.setRect(x,y,ITEM_SIZE,ITEM_SIZE);
+    if(x+ITEM_SIZE<0 || x>WIDTH || y>HEIGHT || y+ITEM_SIZE<0){
+        state = 2;
+    }
+}
+
+void Plusitem::settime(QDateTime time)
+{
+    this->birth_time = time;
 }

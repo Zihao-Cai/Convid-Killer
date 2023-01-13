@@ -24,21 +24,23 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     QVector <QPushButton*> menu_btn;
+    QVector <QTimer*> game_timers;
     int status;
     int choice_y[4];
     int choice_x[4];
     int choicey;
     int choicex;
     int score;
-    QTimer map_timer;
+    QTimer* map_timer = new QTimer;
     QTimer tiptimer;
     QTimer ins_timer;
-    QTimer p_timer;
-    QTimer e_timer;
+    QTimer* p_timer = new QTimer;
+    QTimer* e_timer = new QTimer;
     QTimer ch_timer;
-    QTimer eap_timer;
-    QTimer ell_timer;
-    QTimer item_timer;
+    QTimer* eap_timer = new QTimer;
+    QTimer* ell_timer = new QTimer;
+    QTimer* item_timer = new QTimer;
+    QTimer* itemflash_timer = new QTimer;
     Map* map;
     QPixmap myplanes[5];
     Plane* myplane;
@@ -49,12 +51,17 @@ public:
     bool insflag = true;
     bool chflag = true;
     bool ellflag = true;
+    bool itemflash = true;
+    bool pause = false;
     QSound* menu_bgm;
     QSound* game_bgm;
     QSound* choose_bgm;
     QSound* config_bgm;
     QSound* shoot_bgm;
     QSound* bomb_bgm;
+    QSound* getitem_bgm;
+    QDateTime pause_time;
+    QDateTime recov_time;
 
     void initutil();
     void paintEvent(QPaintEvent*);
@@ -65,12 +72,13 @@ public:
     void instruction();
     void menu();
     void gamepause();
+    void gamerecov();
     void changeip();
     void isbomb();
     void isitem();
     void menubgm_ch();
     void gamebgm_ch();
-    bool bingducollapse(QRect plane_rect, QRect bingdu_rect);
+    bool bingdu_collapse(QRect plane_rect, QRect bingdu_rect);
 
 private slots:
 

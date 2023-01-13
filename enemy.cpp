@@ -29,7 +29,7 @@ Enemy::Enemy()
     shot_intv = 0;
     if(pixindex == 3 ||pixindex == 4){
         isbingdu = true;
-        speed += 2;
+        speed += 5;
     }//病毒体做特殊构造
 }
 
@@ -57,6 +57,8 @@ void Enemy::shoot(int flag)
         enbuls.push_back(tempbul);
         shot_intv = 0;
     }
+    int k=0;
+    while(k<10000){k++;}
 }
 
 void Enemy::move(int tempdir)

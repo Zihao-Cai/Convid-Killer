@@ -34,5 +34,8 @@
         <file>bullet2_.png</file>
         <file>upgrade.png</file>
         <file>blood.png</file>
+        <file>bullet1.png</file>
+        <file>getitem.wav</file>
+        <file>bomb.wav</file>
     </qresource>
 </RCC>

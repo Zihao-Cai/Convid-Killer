@@ -12,7 +12,7 @@
 #define GAME 1
 #define INSTRUCTION 2
 #define CHANGEIP 3
-#define PAUSE 4
+#define GAMEOVER 4
 
 #define RECT_WIDTH 60
 #define RECT_HEIGHT 60

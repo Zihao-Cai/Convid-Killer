@@ -12,6 +12,7 @@ public:
     int x;
     int y;
     int dir;
+    int tempdir;
     int state;
     int blood;
     bool isup;

@@ -22,7 +22,8 @@ SOURCES += \
     enemy.cpp \
     map.cpp \
     plane.cpp \
-    plusitem.cpp
+    plusitem.cpp \
+    radiation.cpp
 
 HEADERS += \
     bombcartoon.h \
@@ -32,7 +33,8 @@ HEADERS += \
     enemy.h \
     map.h \
     plane.h \
-    plusitem.h
+    plusitem.h \
+    radiation.h
 
 FORMS += \
     mainwindow.ui

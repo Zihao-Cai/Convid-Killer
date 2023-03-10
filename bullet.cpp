@@ -9,7 +9,7 @@ Bullet::Bullet(int par_x,int par_y,int dir,bool up)
     }
     if(dir == 2){
         x = par_x+RECT_WIDTH/2-MYBUL_WIDTH/2;
-        y = par_y+MYBUL_HEIGHT;
+        y = par_y+RECT_HEIGHT;
     }
     state = 0;
     p_speed = 4;
@@ -50,7 +50,6 @@ void Bullet::bul_recalc(int dir)
         if(dir == 2){
             this->y += e_speed;
         }
-        bul_rect.setRect(this->x,this->y,MYBUL_WIDTH,MYBUL_HEIGHT);
     }
     if((this->y+MYBUL_HEIGHT)<=0 || (this->y>=HEIGHT)){
         state = 2;

@@ -37,5 +37,7 @@
         <file>bullet1.png</file>
         <file>getitem.wav</file>
         <file>bomb.wav</file>
+        <file>radi.png</file>
+        <file>radi.wav</file>
     </qresource>
 </RCC>

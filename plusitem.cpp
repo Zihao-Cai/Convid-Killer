@@ -36,10 +36,10 @@ void Plusitem::move()
     //随机移动,随机数决定移动方向
     int dir = rand()%4;
     switch (dir) {
-    case 0:y-=10;break;
-    case 1:x+=10;break;
-    case 2:y+=10;break;
-    case 3:x-=10;break;
+    case 0:y-=6;break;
+    case 1:x+=6;break;
+    case 2:y+=6;break;
+    case 3:x-=6;break;
     }
     this->rect.setRect(x,y,ITEM_SIZE,ITEM_SIZE);
     if(x+ITEM_SIZE<0 || x>WIDTH || y>HEIGHT || y+ITEM_SIZE<0){

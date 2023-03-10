@@ -32,7 +32,7 @@ void MainWindow::initutil()
     game_timers.push_back(ell_timer);
     game_timers.push_back(item_timer);
     game_timers.push_back(itemflash_timer);
-
+    game_timers.push_back(radi_timer);
     setFixedSize(WIDTH,HEIGHT);
     setWindowTitle(GAME_TITLE);
     QPixmap img(":/icon.jpg");
@@ -47,8 +47,9 @@ void MainWindow::initutil()
     p_timer->setInterval(60);
     e_timer->setInterval(120);
     eap_timer->setInterval(8000);//间隔八秒出现敌人
-    item_timer->setInterval(5000);//间隔15秒可能出现道具
+    item_timer->setInterval(10000);//间隔10秒可能出现道具
     itemflash_timer->setInterval(400);
+    radi_timer->setInterval(200);
 
     choice_y[0] = 225;
     choice_y[1] = 225+60;
@@ -72,6 +73,7 @@ void MainWindow::initutil()
     shoot_bgm = new QSound(":/shoot.wav");
     getitem_bgm = new QSound(":/getitem.wav");
     bomb_bgm = new QSound(":/bomb.wav");
+    radi_bgm = new QSound(":/radi.wav");
     score = 0;
 
     this->setAttribute(Qt::WA_TransparentForMouseEvents, true);//屏蔽鼠标事件
@@ -105,9 +107,16 @@ void MainWindow::initutil()
         srand((unsigned int) time(NULL));
         for(int i=0;i<enemys.size();i++){
             int tempdir = rand()%100;
-            int flag = rand()%10;
+            int flag = rand()%4;
             enemys[i].move(tempdir);
             enemys[i].shoot(flag);
+            if(enemys[i].isbingdu){
+                if(enemys[i].radi_shoot() && enemys[i].en_radi==nullptr){
+                    enemys[i].radi_time = QDateTime::currentDateTime();
+                    enemys[i].radi_flag = true;
+                    enemys[i].radi_open = true;
+                }
+            }
         }
         for(int i=0;i<items.size();i++){
             int flag = rand()%5;
@@ -158,7 +167,14 @@ void MainWindow::initutil()
         }
         update();
     });
-
+    connect(radi_timer,&QTimer::timeout,[=](){//激光前置提示框定时器
+        if(r_flag){
+            r_flag = false;
+        }else{
+            r_flag = true;
+        }
+        update();
+    });
 
 
     menu();
@@ -183,12 +199,15 @@ void MainWindow::paintEvent(QPaintEvent *)
         for(int i=0;i<enemys.size();i++){
             painter.drawPixmap(enemys[i].x,enemys[i].y,enemys[i].pix_plane);
             if(enemys[i].isbingdu && ellflag){
-                painter.setPen(Qt::red);//设置画笔,绘制圆周颜色
+                painter.setPen(Qt::green);//设置画笔,绘制圆周颜色
                 painter.drawEllipse(enemys[i].x-30,enemys[i].y-30,120,120);
             }
             for(int j=0;j<enemys[i].enbuls.size();j++){
                 painter.drawPixmap(enemys[i].enbuls[j].x,enemys[i].enbuls[j].y,enemys[i].enbuls[j].bul_pix);
             }//绘制敌人子弹
+            if(enemys[i].isbingdu && enemys[i].en_radi!=nullptr){
+                painter.drawPixmap(enemys[i].en_radi->x,enemys[i].en_radi->y,enemys[i].en_radi->pix);
+            }//绘制病毒激光
         }//绘制敌人
         for(int i=0;i<cartoons.size();i++){
             painter.drawPixmap(cartoons[i].x,cartoons[i].y,cartoons[i].bombpix[cartoons[i].pix_index]);
@@ -200,6 +219,16 @@ void MainWindow::paintEvent(QPaintEvent *)
                 if(itemflash)   painter.drawPixmap(items[i].x,items[i].y,items[i].pix);
             }
         }//绘制加成道具
+        //绘制病毒体激光前置提示框
+        for(int i=0;i<enemys.size();i++){
+            if(enemys[i].isbingdu && enemys[i].radi_flag){
+                if(enemys[i].radi_time.secsTo(QDateTime::currentDateTime())<1 && r_flag){
+                    painter.setPen(Qt::red);
+                    painter.drawRect(enemys[i].x+RECT_WIDTH/2-RADI_WIDTH/2,enemys[i].y+RECT_HEIGHT,RADI_WIDTH,HEIGHT-enemys[i].y-RECT_HEIGHT);
+                }
+            }
+        }//************************//
+
         QFont textfont;
         textfont.setPixelSize(12);
         textfont.setBold(true);
@@ -398,15 +427,12 @@ void MainWindow::startgame()
     score = 0;//重置得分
     myplane->blood = 1;//重置玩家血量
     myplane->isup = false;//重置强化导弹
-    map_timer->start();
+
     ins_timer.stop();
     tiptimer.stop();
-    p_timer->start();
-    e_timer->start();
-    eap_timer->start();
-    ell_timer->start();
-    item_timer->start();
-    itemflash_timer->start();
+    for(int i=0;i<game_timers.size();i++){
+        game_timers[i]->start();
+    }
     //bgm播放
     menu_bgm->stop();
     if(game_bgm->isFinished()){
@@ -427,6 +453,16 @@ void MainWindow::recalc()
         }
     }
     for(int i=0;i<enemys.size();i++){
+        if(enemys[i].isbingdu && enemys[i].en_radi!=nullptr){
+            if(enemys[i].en_radi->birth_time.secsTo(QDateTime::currentDateTime())>0){
+                enemys[i].en_radi = nullptr;
+                enemys[i].setradi = true;
+                enemys[i].radi_open = false;
+            }else{
+                enemys[i].en_radi->update_pos(enemys[i].x,enemys[i].y);
+            }
+        }
+
         if(enemys[i].state == 2){
             enemys.remove(i);
         }else{
@@ -451,9 +487,20 @@ void MainWindow::recalc()
             items.remove(i);
         }
     }
+    for(int i=0;i<enemys.size();i++){
+        if(enemys[i].isbingdu && enemys[i].radi_time.secsTo(QDateTime::currentDateTime())>1){
+            enemys[i].radi_flag = false;
+            if(enemys[i].radi_open && enemys[i].setradi){
+                enemys[i].en_radi = new Radiation(enemys[i].x,enemys[i].y);
+                enemys[i].setradi = false;
+            }
+        }
+    }
 
-    if(myplane->blood <= 0){
-        printf("game-over!\n");
+
+
+    if(myplane->blood == 0){//监听游戏结束条件
+        //printf("game-over!\n");
     }
 }
 
@@ -559,7 +606,7 @@ void MainWindow::isbomb()
                 c.state = 1;
                 cartoons.push_back(c);
                 bomb_bgm->play();
-                myplane->blood--;
+                if(myplane->blood>0)    myplane->blood--;
                 update();
             }
         }
@@ -595,6 +642,21 @@ void MainWindow::isbomb()
                 enemys[i].state = 2;
                 myplane->blood = 0;
                 update();
+            }
+        }
+    }
+    //病毒体激光碰撞检测
+    for(int i=0;i<enemys.size();i++){
+        if(enemys[i].isbingdu){
+            if(enemys[i].en_radi!=nullptr){
+                if(enemys[i].en_radi->rect.intersects(myplane->rect)){
+                    Bombcartoon c;
+                    c.setpos(myplane->x+RECT_WIDTH/4,myplane->y+RECT_HEIGHT/4);
+                    c.state = 1;
+                    cartoons.push_back(c);
+                    bomb_bgm->play();
+                    myplane->blood = 0;
+                }
             }
         }
     }

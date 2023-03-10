@@ -6,6 +6,8 @@ Enemy::Enemy()
     state = 0;
     blood = 1;
     isbingdu = false;
+    en_radi = nullptr;
+    last_shoot = last_radi = QDateTime::currentDateTime();
     qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
     int pixindex = qrand()%5;
     QPixmap pix;
@@ -26,10 +28,9 @@ Enemy::Enemy()
     dir = 2;
     speed = MYSPEED;
     rect.setRect(this->x,this->y,RECT_WIDTH,RECT_HEIGHT);
-    shot_intv = 0;
     if(pixindex == 3 ||pixindex == 4){
         isbingdu = true;
-        speed += 5;
+        speed += 3;
     }//病毒体做特殊构造
 }
 
@@ -48,17 +49,23 @@ void Enemy::setpix(QPixmap pix)
 
 void Enemy::shoot(int flag)
 {
-    if(flag == 0 && this->y>=0){
-        shot_intv++;
-    }
-    if(shot_intv == 2 && isbingdu == false){
+    if(flag == 0 && this->y>=0 && isbingdu == false && last_shoot.secsTo(QDateTime::currentDateTime())>0){
+        last_shoot = QDateTime::currentDateTime();
         Bullet tempbul(this->x,this->y,2,false);
         tempbul.state = 1;
         enbuls.push_back(tempbul);
-        shot_intv = 0;
     }
-    int k=0;
-    while(k<10000){k++;}
+}
+
+bool Enemy::radi_shoot()
+{
+    srand(time(NULL));
+    int flag = rand()%5;
+    if(flag == 0 && last_radi.secsTo(QDateTime::currentDateTime())>5){
+        last_radi = QDateTime::currentDateTime();
+        return true;
+    }
+    return false;
 }
 
 void Enemy::move(int tempdir)

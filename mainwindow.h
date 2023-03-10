@@ -41,6 +41,7 @@ public:
     QTimer* ell_timer = new QTimer;
     QTimer* item_timer = new QTimer;
     QTimer* itemflash_timer = new QTimer;
+    QTimer* radi_timer = new QTimer;
     Map* map;
     QPixmap myplanes[5];
     Plane* myplane;
@@ -53,6 +54,7 @@ public:
     bool ellflag = true;
     bool itemflash = true;
     bool pause = false;
+    bool r_flag = true;
     QSound* menu_bgm;
     QSound* game_bgm;
     QSound* choose_bgm;
@@ -60,6 +62,7 @@ public:
     QSound* shoot_bgm;
     QSound* bomb_bgm;
     QSound* getitem_bgm;
+    QSound* radi_bgm;
     QDateTime pause_time;
     QDateTime recov_time;
 

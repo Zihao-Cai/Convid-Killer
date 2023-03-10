@@ -25,3 +25,5 @@
 #define ITEM_SIZE 30
 #define ITEM_BLOOD 0
 #define ITEM_UPGRADE 1
+
+#define RADI_WIDTH 16
